@@ -61,9 +61,9 @@ public class TodoService
 
     public TodoItem? GetById(Guid id) => _todos.FirstOrDefault(t => t.Id == id);
 
-    public async Task<TodoItem> AddAsync(string title)
+    public async Task<TodoItem> AddAsync(string title, Priority priority = Priority.Medium)
     {
-        var todo = new TodoItem { Title = title };
+        var todo = new TodoItem { Title = title, Priority = priority };
         _todos.Add(todo);
         await SaveToStorageAsync();
         return todo;
@@ -75,6 +75,16 @@ public class TodoService
         if (todo == null) return false;
         
         todo.Title = title;
+        await SaveToStorageAsync();
+        return true;
+    }
+
+    public async Task<bool> UpdatePriorityAsync(Guid id, Priority priority)
+    {
+        var todo = GetById(id);
+        if (todo == null) return false;
+        
+        todo.Priority = priority;
         await SaveToStorageAsync();
         return true;
     }
