@@ -30,8 +30,9 @@
                        @bind="newTodoTitle" 
                        @bind:event="oninput"
                        placeholder="What needs to be done?" 
-                       class="todo-input" />
-                <button type="submit" class="add-btn" disabled="@string.IsNullOrWhiteSpace(newTodoTitle)">
+                       class="todo-input"
+                       disabled="@(!isLoaded)" />
+                <button type="submit" class="add-btn" disabled="@(string.IsNullOrWhiteSpace(newTodoTitle) || !isLoaded)">
                     <span class="btn-icon">+</span>
                     <span class="btn-text">Add Task</span>
                 </button>
@@ -39,13 +40,13 @@
         </div>
 
         <div class="filter-tabs">
-            <button class="filter-btn @(currentFilter == Filter.All ? "active" : "")" @onclick="() => SetFilter(Filter.All)">
+            <button class="filter-btn @(currentFilter == Filter.All ? "active" : "")" @onclick="() => SetFilter(Filter.All)" disabled="@(!isLoaded)">
                 All
             </button>
-            <button class="filter-btn @(currentFilter == Filter.Pending ? "active" : "")" @onclick="() => SetFilter(Filter.Pending)">
+            <button class="filter-btn @(currentFilter == Filter.Pending ? "active" : "")" @onclick="() => SetFilter(Filter.Pending)" disabled="@(!isLoaded)">
                 Pending
             </button>
-            <button class="filter-btn @(currentFilter == Filter.Completed ? "active" : "")" @onclick="() => SetFilter(Filter.Completed)">
+            <button class="filter-btn @(currentFilter == Filter.Completed ? "active" : "")" @onclick="() => SetFilter(Filter.Completed)" disabled="@(!isLoaded)">
                 Completed
             </button>
         </div>
@@ -106,6 +107,7 @@
     private Guid? editingId = null;
     private string editingTitle = string.Empty;
     private Filter currentFilter = Filter.All;
+    private bool isLoaded = false;
 
     private enum Filter { All, Pending, Completed }
 
@@ -114,6 +116,7 @@
         if (firstRender)
         {
             await TodoService.InitializeAsync();
+            isLoaded = true;
             StateHasChanged();
         }
     }
