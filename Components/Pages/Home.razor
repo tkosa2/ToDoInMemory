@@ -178,29 +178,29 @@
     {
         get
         {
-            var todos = TodoService.GetAll();
+            var todos = TodoService.GetAll().AsEnumerable();
             
             // Apply status filter
             todos = currentFilter switch
             {
-                Filter.Pending => todos.Where(t => !t.IsCompleted).ToList(),
-                Filter.Completed => todos.Where(t => t.IsCompleted).ToList(),
+                Filter.Pending => todos.Where(t => !t.IsCompleted),
+                Filter.Completed => todos.Where(t => t.IsCompleted),
                 _ => todos
             };
             
             // Apply priority filter
             todos = currentPriorityFilter switch
             {
-                PriorityFilter.High => todos.Where(t => t.Priority == Priority.High).ToList(),
-                PriorityFilter.Medium => todos.Where(t => t.Priority == Priority.Medium).ToList(),
-                PriorityFilter.Low => todos.Where(t => t.Priority == Priority.Low).ToList(),
+                PriorityFilter.High => todos.Where(t => t.Priority == Priority.High),
+                PriorityFilter.Medium => todos.Where(t => t.Priority == Priority.Medium),
+                PriorityFilter.Low => todos.Where(t => t.Priority == Priority.Low),
                 _ => todos
             };
             
             // Apply sorting
             return currentSort switch
             {
-                SortBy.Priority => todos.OrderByDescending(t => t.Priority).ThenByDescending(t => t.CreatedAt).ToList(),
+                SortBy.Priority => todos.OrderByDescending(t => t.Priority).ThenByDescending(t => t.CreatedAt),
                 _ => todos
             };
         }
@@ -277,11 +277,25 @@
         currentSort = sort;
     }
 
-    private string GetEmptyMessage() => currentFilter switch
+    private string GetEmptyMessage()
     {
-        Filter.Pending => "No pending tasks. Great job!",
-        Filter.Completed => "No completed tasks yet.",
-        _ => "No tasks yet. Add one above!"
-    };
+        if (currentPriorityFilter != PriorityFilter.All)
+        {
+            var priorityName = currentPriorityFilter.ToString();
+            return currentFilter switch
+            {
+                Filter.Pending => $"No pending {priorityName.ToLower()} priority tasks.",
+                Filter.Completed => $"No completed {priorityName.ToLower()} priority tasks.",
+                _ => $"No {priorityName.ToLower()} priority tasks."
+            };
+        }
+        
+        return currentFilter switch
+        {
+            Filter.Pending => "No pending tasks. Great job!",
+            Filter.Completed => "No completed tasks yet.",
+            _ => "No tasks yet. Add one above!"
+        };
+    }
 }
 
