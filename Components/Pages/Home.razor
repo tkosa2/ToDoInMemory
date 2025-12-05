@@ -1,0 +1,182 @@
+@page "/"
+@inject TodoService TodoService
+@rendermode InteractiveServer
+
+<PageTitle>ToDo App</PageTitle>
+
+<div class="todo-app">
+    <header class="hero">
+        <div class="hero-content">
+            <h1>My Tasks</h1>
+            <p class="subtitle">Stay organized, get things done</p>
+        </div>
+        <div class="stats">
+            <div class="stat-card">
+                <span class="stat-number">@TodoService.GetPendingCount()</span>
+                <span class="stat-label">Pending</span>
+            </div>
+            <div class="stat-card completed">
+                <span class="stat-number">@TodoService.GetCompletedCount()</span>
+                <span class="stat-label">Completed</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="todo-main">
+        <div class="add-todo-section">
+            <form @onsubmit="AddTodo" class="add-form">
+                <input type="text" 
+                       @bind="newTodoTitle" 
+                       @bind:event="oninput"
+                       placeholder="What needs to be done?" 
+                       class="todo-input" />
+                <button type="submit" class="add-btn" disabled="@string.IsNullOrWhiteSpace(newTodoTitle)">
+                    <span class="btn-icon">+</span>
+                    <span class="btn-text">Add Task</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="filter-tabs">
+            <button class="filter-btn @(currentFilter == Filter.All ? "active" : "")" @onclick="() => SetFilter(Filter.All)">
+                All
+            </button>
+            <button class="filter-btn @(currentFilter == Filter.Pending ? "active" : "")" @onclick="() => SetFilter(Filter.Pending)">
+                Pending
+            </button>
+            <button class="filter-btn @(currentFilter == Filter.Completed ? "active" : "")" @onclick="() => SetFilter(Filter.Completed)">
+                Completed
+            </button>
+        </div>
+
+        <div class="todo-list">
+            @if (!FilteredTodos.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">📝</div>
+                    <p>@GetEmptyMessage()</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var todo in FilteredTodos)
+                {
+                    <div class="todo-item @(todo.IsCompleted ? "completed" : "") @(editingId == todo.Id ? "editing" : "")">
+                        <button class="check-btn @(todo.IsCompleted ? "checked" : "")" 
+                                @onclick="() => ToggleTodo(todo.Id)">
+                            @if (todo.IsCompleted)
+                            {
+                                <span class="checkmark">✓</span>
+                            }
+                        </button>
+                        
+                        @if (editingId == todo.Id)
+                        {
+                            <input type="text" 
+                                   @bind="editingTitle" 
+                                   @bind:event="oninput"
+                                   @onkeydown="HandleEditKeyDown"
+                                   class="edit-input" />
+                            <div class="edit-actions">
+                                <button class="save-btn" @onclick="SaveEdit">Save</button>
+                                <button class="cancel-btn" @onclick="CancelEdit">Cancel</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="todo-content" @ondblclick="() => StartEdit(todo)">
+                                <span class="todo-title">@todo.Title</span>
+                                <span class="todo-date">@todo.CreatedAt.ToString("MMM dd, HH:mm")</span>
+                            </div>
+                            <div class="todo-actions">
+                                <button class="edit-btn" @onclick="() => StartEdit(todo)" title="Edit">✏️</button>
+                                <button class="delete-btn" @onclick="() => DeleteTodo(todo.Id)" title="Delete">🗑️</button>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </main>
+</div>
+
+@code {
+    private string newTodoTitle = string.Empty;
+    private Guid? editingId = null;
+    private string editingTitle = string.Empty;
+    private Filter currentFilter = Filter.All;
+
+    private enum Filter { All, Pending, Completed }
+
+    private IEnumerable<TodoItem> FilteredTodos => currentFilter switch
+    {
+        Filter.Pending => TodoService.GetAll().Where(t => !t.IsCompleted),
+        Filter.Completed => TodoService.GetAll().Where(t => t.IsCompleted),
+        _ => TodoService.GetAll()
+    };
+
+    private void AddTodo()
+    {
+        if (!string.IsNullOrWhiteSpace(newTodoTitle))
+        {
+            TodoService.Add(newTodoTitle.Trim());
+            newTodoTitle = string.Empty;
+        }
+    }
+
+    private void ToggleTodo(Guid id)
+    {
+        TodoService.ToggleComplete(id);
+    }
+
+    private void DeleteTodo(Guid id)
+    {
+        TodoService.Delete(id);
+    }
+
+    private void StartEdit(TodoItem todo)
+    {
+        editingId = todo.Id;
+        editingTitle = todo.Title;
+    }
+
+    private void SaveEdit()
+    {
+        if (editingId.HasValue && !string.IsNullOrWhiteSpace(editingTitle))
+        {
+            TodoService.Update(editingId.Value, editingTitle.Trim());
+        }
+        CancelEdit();
+    }
+
+    private void CancelEdit()
+    {
+        editingId = null;
+        editingTitle = string.Empty;
+    }
+
+    private void HandleEditKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            SaveEdit();
+        }
+        else if (e.Key == "Escape")
+        {
+            CancelEdit();
+        }
+    }
+
+    private void SetFilter(Filter filter)
+    {
+        currentFilter = filter;
+    }
+
+    private string GetEmptyMessage() => currentFilter switch
+    {
+        Filter.Pending => "No pending tasks. Great job!",
+        Filter.Completed => "No completed tasks yet.",
+        _ => "No tasks yet. Add one above!"
+    };
+}
+
