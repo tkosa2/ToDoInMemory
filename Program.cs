@@ -7,8 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Register TodoService as singleton for in-memory persistence
-builder.Services.AddSingleton<TodoService>();
+// Register services
+builder.Services.AddScoped<LocalStorageService>();
+builder.Services.AddScoped<TodoService>();
 
 var app = builder.Build();
 

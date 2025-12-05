@@ -1,5 +1,6 @@
 @page "/"
 @inject TodoService TodoService
+@inject LocalStorageService LocalStorageService
 @rendermode InteractiveServer
 
 <PageTitle>ToDo App</PageTitle>
@@ -108,6 +109,15 @@
 
     private enum Filter { All, Pending, Completed }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await TodoService.InitializeAsync();
+            StateHasChanged();
+        }
+    }
+
     private IEnumerable<TodoItem> FilteredTodos => currentFilter switch
     {
         Filter.Pending => TodoService.GetAll().Where(t => !t.IsCompleted),
@@ -115,23 +125,23 @@
         _ => TodoService.GetAll()
     };
 
-    private void AddTodo()
+    private async Task AddTodo()
     {
         if (!string.IsNullOrWhiteSpace(newTodoTitle))
         {
-            TodoService.Add(newTodoTitle.Trim());
+            await TodoService.AddAsync(newTodoTitle.Trim());
             newTodoTitle = string.Empty;
         }
     }
 
-    private void ToggleTodo(Guid id)
+    private async Task ToggleTodo(Guid id)
     {
-        TodoService.ToggleComplete(id);
+        await TodoService.ToggleCompleteAsync(id);
     }
 
-    private void DeleteTodo(Guid id)
+    private async Task DeleteTodo(Guid id)
     {
-        TodoService.Delete(id);
+        await TodoService.DeleteAsync(id);
     }
 
     private void StartEdit(TodoItem todo)
@@ -140,11 +150,11 @@
         editingTitle = todo.Title;
     }
 
-    private void SaveEdit()
+    private async Task SaveEdit()
     {
         if (editingId.HasValue && !string.IsNullOrWhiteSpace(editingTitle))
         {
-            TodoService.Update(editingId.Value, editingTitle.Trim());
+            await TodoService.UpdateAsync(editingId.Value, editingTitle.Trim());
         }
         CancelEdit();
     }
@@ -155,11 +165,11 @@
         editingTitle = string.Empty;
     }
 
-    private void HandleEditKeyDown(KeyboardEventArgs e)
+    private async Task HandleEditKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
         {
-            SaveEdit();
+            await SaveEdit();
         }
         else if (e.Key == "Escape")
         {

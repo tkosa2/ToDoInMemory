@@ -10,7 +10,7 @@ A beautiful, modern ToDo application built with Blazor Server and C# using in-me
 - ✅ Real-time task counter statistics
 - ✅ Modern dark theme UI
 - ✅ Responsive design
-- ✅ In-memory data persistence (per session)
+- ✅ Browser localStorage persistence
 
 ## Prerequisites
 
@@ -75,10 +75,11 @@ ToDoInMemory/
 
 ## Note
 
-This application uses in-memory storage, which means:
-- Data persists across page refreshes (as long as the server is running)
-- Data is lost when the server restarts
-- All users share the same data (singleton service)
+This application uses browser localStorage for data persistence, which means:
+- Data persists across browser sessions and page refreshes
+- Data is stored locally in the user's browser
+- Each browser session maintains its own data
+- Clearing browser data will remove all tasks
 
-For production use, consider implementing a database backend (Entity Framework Core with SQL Server, SQLite, or PostgreSQL).
+For production use with multiple users and server-side data management, consider implementing a database backend (Entity Framework Core with SQL Server, SQLite, or PostgreSQL).
 

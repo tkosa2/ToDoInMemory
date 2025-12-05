@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ToDoInMemory.Models;
 
 namespace ToDoInMemory.Services;
@@ -5,43 +6,78 @@ namespace ToDoInMemory.Services;
 public class TodoService
 {
     private readonly List<TodoItem> _todos = new();
+    private readonly LocalStorageService _localStorage;
+    private const string StorageKey = "todos";
+    private bool _isInitialized = false;
+
+    public TodoService(LocalStorageService localStorage)
+    {
+        _localStorage = localStorage;
+    }
+
+    public async Task InitializeAsync()
+    {
+        if (_isInitialized) return;
+        
+        var json = await _localStorage.GetItemAsync(StorageKey);
+        if (!string.IsNullOrEmpty(json))
+        {
+            var todos = JsonSerializer.Deserialize<List<TodoItem>>(json);
+            if (todos != null)
+            {
+                _todos.Clear();
+                _todos.AddRange(todos);
+            }
+        }
+        _isInitialized = true;
+    }
+
+    private async Task SaveToStorageAsync()
+    {
+        var json = JsonSerializer.Serialize(_todos);
+        await _localStorage.SetItemAsync(StorageKey, json);
+    }
 
     public IReadOnlyList<TodoItem> GetAll() => _todos.OrderByDescending(t => t.CreatedAt).ToList();
 
     public TodoItem? GetById(Guid id) => _todos.FirstOrDefault(t => t.Id == id);
 
-    public TodoItem Add(string title)
+    public async Task<TodoItem> AddAsync(string title)
     {
         var todo = new TodoItem { Title = title };
         _todos.Add(todo);
+        await SaveToStorageAsync();
         return todo;
     }
 
-    public bool Update(Guid id, string title)
+    public async Task<bool> UpdateAsync(Guid id, string title)
     {
         var todo = GetById(id);
         if (todo == null) return false;
         
         todo.Title = title;
+        await SaveToStorageAsync();
         return true;
     }
 
-    public bool ToggleComplete(Guid id)
+    public async Task<bool> ToggleCompleteAsync(Guid id)
     {
         var todo = GetById(id);
         if (todo == null) return false;
 
         todo.IsCompleted = !todo.IsCompleted;
         todo.CompletedAt = todo.IsCompleted ? DateTime.Now : null;
+        await SaveToStorageAsync();
         return true;
     }
 
-    public bool Delete(Guid id)
+    public async Task<bool> DeleteAsync(Guid id)
     {
         var todo = GetById(id);
         if (todo == null) return false;
 
         _todos.Remove(todo);
+        await SaveToStorageAsync();
         return true;
     }
 
