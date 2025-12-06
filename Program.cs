@@ -29,3 +29,5 @@ app.MapRazorComponents<App>()
 
 app.Run();
 
+// Make Program accessible for WebApplicationFactory
+public partial class Program { }
