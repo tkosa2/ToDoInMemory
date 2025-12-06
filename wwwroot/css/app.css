@@ -8,6 +8,12 @@
     --success: #10b981;
     --success-glow: rgba(16, 185, 129, 0.3);
     --danger: #ef4444;
+    --priority-high: #ef4444;
+    --priority-high-glow: rgba(239, 68, 68, 0.3);
+    --priority-medium: #f59e0b;
+    --priority-medium-glow: rgba(245, 158, 11, 0.3);
+    --priority-low: #3b82f6;
+    --priority-low-glow: rgba(59, 130, 246, 0.3);
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
@@ -139,6 +145,14 @@ body {
 .add-form {
     display: flex;
     gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.add-form-inputs {
+    display: flex;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 300px;
 }
 
 .todo-input {
@@ -151,6 +165,7 @@ body {
     font-family: inherit;
     color: var(--text-primary);
     transition: all 0.3s ease;
+    min-width: 200px;
 }
 
 .todo-input::placeholder {
@@ -161,6 +176,31 @@ body {
     outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.priority-select,
+.priority-select-edit {
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.priority-select:focus,
+.priority-select-edit:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.priority-select-edit {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
 }
 
 .add-btn {
@@ -197,10 +237,23 @@ body {
 /* Filter Tabs */
 .filter-tabs {
     display: flex;
+    flex-wrap: wrap;
     padding: 0.75rem 1.5rem;
-    gap: 0.5rem;
+    gap: 1rem;
     border-bottom: 1px solid var(--border);
     background: var(--bg-secondary);
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
 .filter-btn {
@@ -225,6 +278,33 @@ body {
     background: var(--accent);
     color: white;
     border-color: var(--accent);
+}
+
+.filter-btn.priority-high:not(.active) {
+    border-color: var(--priority-high);
+    color: var(--priority-high);
+}
+
+.filter-btn.priority-high.active {
+    background: var(--priority-high);
+}
+
+.filter-btn.priority-medium:not(.active) {
+    border-color: var(--priority-medium);
+    color: var(--priority-medium);
+}
+
+.filter-btn.priority-medium.active {
+    background: var(--priority-medium);
+}
+
+.filter-btn.priority-low:not(.active) {
+    border-color: var(--priority-low);
+    color: var(--priority-low);
+}
+
+.filter-btn.priority-low.active {
+    background: var(--priority-low);
 }
 
 /* Todo List */
@@ -275,6 +355,43 @@ body {
     box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
+/* Priority border glow effects */
+.todo-item.priority-high:not(.completed):hover {
+    border-color: var(--priority-high);
+    box-shadow: 0 0 12px var(--priority-high-glow);
+}
+
+.todo-item.priority-medium:not(.completed):hover {
+    border-color: var(--priority-medium);
+    box-shadow: 0 0 12px var(--priority-medium-glow);
+}
+
+.todo-item.priority-low:not(.completed):hover {
+    border-color: var(--priority-low);
+    box-shadow: 0 0 12px var(--priority-low-glow);
+}
+
+/* Priority Indicator */
+.priority-indicator {
+    width: 4px;
+    height: 40px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.priority-indicator.priority-high {
+    background: linear-gradient(180deg, var(--priority-high) 0%, #dc2626 100%);
+}
+
+.priority-indicator.priority-medium {
+    background: linear-gradient(180deg, var(--priority-medium) 0%, #d97706 100%);
+}
+
+.priority-indicator.priority-low {
+    background: linear-gradient(180deg, var(--priority-low) 0%, #2563eb 100%);
+}
+
 /* Checkbox */
 .check-btn {
     width: 28px;
@@ -315,6 +432,13 @@ body {
     min-width: 0;
 }
 
+.todo-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
 .todo-title {
     font-size: 1rem;
     font-weight: 500;
@@ -324,6 +448,33 @@ body {
 .todo-date {
     font-size: 0.8rem;
     color: var(--text-muted);
+}
+
+.priority-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.priority-badge.priority-high {
+    background: var(--priority-high-glow);
+    color: var(--priority-high);
+    border: 1px solid var(--priority-high);
+}
+
+.priority-badge.priority-medium {
+    background: var(--priority-medium-glow);
+    color: var(--priority-medium);
+    border: 1px solid var(--priority-medium);
+}
+
+.priority-badge.priority-low {
+    background: var(--priority-low-glow);
+    color: var(--priority-low);
+    border: 1px solid var(--priority-low);
 }
 
 /* Todo Actions */
@@ -358,6 +509,13 @@ body {
 }
 
 /* Edit Mode */
+.edit-content {
+    flex: 1;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
 .edit-input {
     flex: 1;
     background: var(--bg-primary);
@@ -441,6 +599,11 @@ body {
         flex-direction: column;
     }
 
+    .add-form-inputs {
+        flex-direction: column;
+        min-width: 100%;
+    }
+
     .add-btn {
         justify-content: center;
     }
@@ -465,6 +628,20 @@ body {
 
     .todo-actions {
         opacity: 1;
+    }
+
+    .filter-tabs {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .filter-group {
+        flex-wrap: wrap;
+    }
+
+    .filter-label {
+        width: 100%;
+        margin-bottom: 0.25rem;
     }
 }
 

@@ -26,12 +26,19 @@
     <main class="todo-main">
         <div class="add-todo-section">
             <form @onsubmit="AddTodo" class="add-form">
-                <input type="text" 
-                       @bind="newTodoTitle" 
-                       @bind:event="oninput"
-                       placeholder="What needs to be done?" 
-                       class="todo-input"
-                       disabled="@(!isLoaded)" />
+                <div class="add-form-inputs">
+                    <input type="text" 
+                           @bind="newTodoTitle" 
+                           @bind:event="oninput"
+                           placeholder="What needs to be done?" 
+                           class="todo-input"
+                           disabled="@(!isLoaded)" />
+                    <select @bind="newTodoPriority" class="priority-select" disabled="@(!isLoaded)">
+                        <option value="@Priority.Low">Low</option>
+                        <option value="@Priority.Medium">Medium</option>
+                        <option value="@Priority.High">High</option>
+                    </select>
+                </div>
                 <button type="submit" class="add-btn" disabled="@(string.IsNullOrWhiteSpace(newTodoTitle) || !isLoaded)">
                     <span class="btn-icon">+</span>
                     <span class="btn-text">Add Task</span>
@@ -40,15 +47,42 @@
         </div>
 
         <div class="filter-tabs">
-            <button class="filter-btn @(currentFilter == Filter.All ? "active" : "")" @onclick="() => SetFilter(Filter.All)" disabled="@(!isLoaded)">
-                All
-            </button>
-            <button class="filter-btn @(currentFilter == Filter.Pending ? "active" : "")" @onclick="() => SetFilter(Filter.Pending)" disabled="@(!isLoaded)">
-                Pending
-            </button>
-            <button class="filter-btn @(currentFilter == Filter.Completed ? "active" : "")" @onclick="() => SetFilter(Filter.Completed)" disabled="@(!isLoaded)">
-                Completed
-            </button>
+            <div class="filter-group">
+                <span class="filter-label">Status:</span>
+                <button class="filter-btn @(currentFilter == Filter.All ? "active" : "")" @onclick="() => SetFilter(Filter.All)" disabled="@(!isLoaded)">
+                    All
+                </button>
+                <button class="filter-btn @(currentFilter == Filter.Pending ? "active" : "")" @onclick="() => SetFilter(Filter.Pending)" disabled="@(!isLoaded)">
+                    Pending
+                </button>
+                <button class="filter-btn @(currentFilter == Filter.Completed ? "active" : "")" @onclick="() => SetFilter(Filter.Completed)" disabled="@(!isLoaded)">
+                    Completed
+                </button>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">Priority:</span>
+                <button class="filter-btn @(currentPriorityFilter == PriorityFilter.All ? "active" : "")" @onclick="() => SetPriorityFilter(PriorityFilter.All)" disabled="@(!isLoaded)">
+                    All
+                </button>
+                <button class="filter-btn priority-high @(currentPriorityFilter == PriorityFilter.High ? "active" : "")" @onclick="() => SetPriorityFilter(PriorityFilter.High)" disabled="@(!isLoaded)">
+                    High
+                </button>
+                <button class="filter-btn priority-medium @(currentPriorityFilter == PriorityFilter.Medium ? "active" : "")" @onclick="() => SetPriorityFilter(PriorityFilter.Medium)" disabled="@(!isLoaded)">
+                    Medium
+                </button>
+                <button class="filter-btn priority-low @(currentPriorityFilter == PriorityFilter.Low ? "active" : "")" @onclick="() => SetPriorityFilter(PriorityFilter.Low)" disabled="@(!isLoaded)">
+                    Low
+                </button>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">Sort:</span>
+                <button class="filter-btn @(currentSort == SortBy.CreatedDate ? "active" : "")" @onclick="() => SetSort(SortBy.CreatedDate)" disabled="@(!isLoaded)">
+                    Date
+                </button>
+                <button class="filter-btn @(currentSort == SortBy.Priority ? "active" : "")" @onclick="() => SetSort(SortBy.Priority)" disabled="@(!isLoaded)">
+                    Priority
+                </button>
+            </div>
         </div>
 
         <div class="todo-list">
@@ -63,7 +97,7 @@
             {
                 @foreach (var todo in FilteredTodos)
                 {
-                    <div class="todo-item @(todo.IsCompleted ? "completed" : "") @(editingId == todo.Id ? "editing" : "")">
+                    <div class="todo-item @(todo.IsCompleted ? "completed" : "") @(editingId == todo.Id ? "editing" : "") priority-@(todo.Priority.ToString().ToLower())">
                         <button class="check-btn @(todo.IsCompleted ? "checked" : "")" 
                                 @onclick="() => ToggleTodo(todo.Id)">
                             @if (todo.IsCompleted)
@@ -72,13 +106,23 @@
                             }
                         </button>
                         
+                        <div class="priority-indicator priority-@(todo.Priority.ToString().ToLower())" title="@todo.Priority Priority">
+                        </div>
+                        
                         @if (editingId == todo.Id)
                         {
-                            <input type="text" 
-                                   @bind="editingTitle" 
-                                   @bind:event="oninput"
-                                   @onkeydown="HandleEditKeyDown"
-                                   class="edit-input" />
+                            <div class="edit-content">
+                                <input type="text" 
+                                       @bind="editingTitle" 
+                                       @bind:event="oninput"
+                                       @onkeydown="HandleEditKeyDown"
+                                       class="edit-input" />
+                                <select @bind="editingPriority" class="priority-select-edit">
+                                    <option value="@Priority.Low">Low</option>
+                                    <option value="@Priority.Medium">Medium</option>
+                                    <option value="@Priority.High">High</option>
+                                </select>
+                            </div>
                             <div class="edit-actions">
                                 <button class="save-btn" @onclick="SaveEdit">Save</button>
                                 <button class="cancel-btn" @onclick="CancelEdit">Cancel</button>
@@ -87,7 +131,10 @@
                         else
                         {
                             <div class="todo-content" @ondblclick="() => StartEdit(todo)">
-                                <span class="todo-title">@todo.Title</span>
+                                <div class="todo-header">
+                                    <span class="todo-title">@todo.Title</span>
+                                    <span class="priority-badge priority-@(todo.Priority.ToString().ToLower())">@todo.Priority</span>
+                                </div>
                                 <span class="todo-date">@todo.CreatedAt.ToString("MMM dd, HH:mm")</span>
                             </div>
                             <div class="todo-actions">
@@ -104,12 +151,18 @@
 
 @code {
     private string newTodoTitle = string.Empty;
+    private Priority newTodoPriority = Priority.Medium;
     private Guid? editingId = null;
     private string editingTitle = string.Empty;
+    private Priority editingPriority = Priority.Medium;
     private Filter currentFilter = Filter.All;
+    private PriorityFilter currentPriorityFilter = PriorityFilter.All;
+    private SortBy currentSort = SortBy.CreatedDate;
     private bool isLoaded = false;
 
     private enum Filter { All, Pending, Completed }
+    private enum PriorityFilter { All, High, Medium, Low }
+    private enum SortBy { CreatedDate, Priority }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -121,19 +174,45 @@
         }
     }
 
-    private IEnumerable<TodoItem> FilteredTodos => currentFilter switch
+    private IEnumerable<TodoItem> FilteredTodos
     {
-        Filter.Pending => TodoService.GetAll().Where(t => !t.IsCompleted),
-        Filter.Completed => TodoService.GetAll().Where(t => t.IsCompleted),
-        _ => TodoService.GetAll()
-    };
+        get
+        {
+            var todos = TodoService.GetAll().AsEnumerable();
+            
+            // Apply status filter
+            todos = currentFilter switch
+            {
+                Filter.Pending => todos.Where(t => !t.IsCompleted),
+                Filter.Completed => todos.Where(t => t.IsCompleted),
+                _ => todos
+            };
+            
+            // Apply priority filter
+            todos = currentPriorityFilter switch
+            {
+                PriorityFilter.High => todos.Where(t => t.Priority == Priority.High),
+                PriorityFilter.Medium => todos.Where(t => t.Priority == Priority.Medium),
+                PriorityFilter.Low => todos.Where(t => t.Priority == Priority.Low),
+                _ => todos
+            };
+            
+            // Apply sorting
+            return currentSort switch
+            {
+                SortBy.Priority => todos.OrderByDescending(t => t.Priority).ThenByDescending(t => t.CreatedAt),
+                _ => todos
+            };
+        }
+    }
 
     private async Task AddTodo()
     {
         if (!string.IsNullOrWhiteSpace(newTodoTitle))
         {
-            await TodoService.AddAsync(newTodoTitle.Trim());
+            await TodoService.AddAsync(newTodoTitle.Trim(), newTodoPriority);
             newTodoTitle = string.Empty;
+            newTodoPriority = Priority.Medium;
         }
     }
 
@@ -151,6 +230,7 @@
     {
         editingId = todo.Id;
         editingTitle = todo.Title;
+        editingPriority = todo.Priority;
     }
 
     private async Task SaveEdit()
@@ -158,6 +238,7 @@
         if (editingId.HasValue && !string.IsNullOrWhiteSpace(editingTitle))
         {
             await TodoService.UpdateAsync(editingId.Value, editingTitle.Trim());
+            await TodoService.UpdatePriorityAsync(editingId.Value, editingPriority);
         }
         CancelEdit();
     }
@@ -166,6 +247,7 @@
     {
         editingId = null;
         editingTitle = string.Empty;
+        editingPriority = Priority.Medium;
     }
 
     private async Task HandleEditKeyDown(KeyboardEventArgs e)
@@ -185,11 +267,35 @@
         currentFilter = filter;
     }
 
-    private string GetEmptyMessage() => currentFilter switch
+    private void SetPriorityFilter(PriorityFilter filter)
     {
-        Filter.Pending => "No pending tasks. Great job!",
-        Filter.Completed => "No completed tasks yet.",
-        _ => "No tasks yet. Add one above!"
-    };
+        currentPriorityFilter = filter;
+    }
+
+    private void SetSort(SortBy sort)
+    {
+        currentSort = sort;
+    }
+
+    private string GetEmptyMessage()
+    {
+        if (currentPriorityFilter != PriorityFilter.All)
+        {
+            var priorityName = currentPriorityFilter.ToString();
+            return currentFilter switch
+            {
+                Filter.Pending => $"No pending {priorityName.ToLower()} priority tasks.",
+                Filter.Completed => $"No completed {priorityName.ToLower()} priority tasks.",
+                _ => $"No {priorityName.ToLower()} priority tasks."
+            };
+        }
+        
+        return currentFilter switch
+        {
+            Filter.Pending => "No pending tasks. Great job!",
+            Filter.Completed => "No completed tasks yet.",
+            _ => "No tasks yet. Add one above!"
+        };
+    }
 }
 
