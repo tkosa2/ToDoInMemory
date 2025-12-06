@@ -2,7 +2,7 @@ using Microsoft.JSInterop;
 
 namespace ToDoInMemory.Services;
 
-public class LocalStorageService
+public class LocalStorageService : ILocalStorageService
 {
     private readonly IJSRuntime _jsRuntime;
 

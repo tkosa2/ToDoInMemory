@@ -8,7 +8,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // Register services
-builder.Services.AddScoped<LocalStorageService>();
+builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
 builder.Services.AddScoped<TodoService>();
 
 var app = builder.Build();
