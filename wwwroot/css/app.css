@@ -8,6 +8,9 @@
     --success: #10b981;
     --success-glow: rgba(16, 185, 129, 0.3);
     --danger: #ef4444;
+    --danger-glow: rgba(239, 68, 68, 0.3);
+    --warning: #f59e0b;
+    --warning-glow: rgba(245, 158, 11, 0.3);
     --priority-high: #ef4444;
     --priority-high-glow: rgba(239, 68, 68, 0.3);
     --priority-medium: #f59e0b;
@@ -109,6 +112,11 @@ body {
     box-shadow: 0 0 20px var(--success-glow);
 }
 
+.stat-card.overdue:hover {
+    border-color: var(--danger);
+    box-shadow: 0 0 20px var(--danger-glow);
+}
+
 .stat-number {
     font-size: 2rem;
     font-weight: 700;
@@ -117,6 +125,10 @@ body {
 
 .stat-card.completed .stat-number {
     color: var(--success);
+}
+
+.stat-card.overdue .stat-number {
+    color: var(--danger);
 }
 
 .stat-label {
@@ -203,6 +215,38 @@ body {
     font-size: 0.9rem;
 }
 
+.date-input,
+.date-input-edit {
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.date-input:focus,
+.date-input-edit:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.date-input-edit {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Date input webkit styling for dark theme */
+.date-input::-webkit-calendar-picker-indicator,
+.date-input-edit::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
 .add-btn {
     display: flex;
     align-items: center;
@@ -232,6 +276,64 @@ body {
 .btn-icon {
     font-size: 1.25rem;
     font-weight: 700;
+}
+
+/* Search Section */
+.search-section {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary);
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-input {
+    width: 100%;
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.875rem 3rem 0.875rem 1.25rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 0.75rem;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+.clear-search-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 /* Filter Tabs */
@@ -371,6 +473,25 @@ body {
     box-shadow: 0 0 12px var(--priority-low-glow);
 }
 
+/* Overdue and due today highlighting */
+.todo-item.overdue:not(.completed) {
+    border-color: var(--danger);
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, rgba(239, 68, 68, 0.1) 100%);
+}
+
+.todo-item.overdue:not(.completed):hover {
+    box-shadow: 0 0 16px var(--danger-glow);
+}
+
+.todo-item.due-today:not(.completed) {
+    border-color: var(--warning);
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, rgba(245, 158, 11, 0.08) 100%);
+}
+
+.todo-item.due-today:not(.completed):hover {
+    box-shadow: 0 0 16px var(--warning-glow);
+}
+
 /* Priority Indicator */
 .priority-indicator {
     width: 4px;
@@ -448,6 +569,34 @@ body {
 .todo-date {
     font-size: 0.8rem;
     color: var(--text-muted);
+}
+
+.todo-metadata {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.due-date-info {
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+}
+
+.due-date-info.overdue-text {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+}
+
+.due-date-info.due-today-text {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--warning);
+    border: 1px solid var(--warning);
 }
 
 .priority-badge {

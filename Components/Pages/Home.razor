@@ -20,6 +20,10 @@
                 <span class="stat-number">@TodoService.GetCompletedCount()</span>
                 <span class="stat-label">Completed</span>
             </div>
+            <div class="stat-card overdue">
+                <span class="stat-number">@TodoService.GetOverdueCount()</span>
+                <span class="stat-label">Overdue</span>
+            </div>
         </div>
     </header>
 
@@ -38,12 +42,34 @@
                         <option value="@Priority.Medium">Medium</option>
                         <option value="@Priority.High">High</option>
                     </select>
+                    <input type="date" 
+                           @bind="newTodoDueDate" 
+                           class="date-input"
+                           placeholder="Due date (optional)"
+                           disabled="@(!isLoaded)" />
                 </div>
                 <button type="submit" class="add-btn" disabled="@(string.IsNullOrWhiteSpace(newTodoTitle) || !isLoaded)">
                     <span class="btn-icon">+</span>
                     <span class="btn-text">Add Task</span>
                 </button>
             </form>
+        </div>
+
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" 
+                       @bind="searchQuery" 
+                       @bind:event="oninput"
+                       placeholder="Search tasks by title..." 
+                       class="search-input"
+                       disabled="@(!isLoaded)" />
+                @if (!string.IsNullOrWhiteSpace(searchQuery))
+                {
+                    <button class="clear-search-btn" @onclick="ClearSearch" title="Clear search" aria-label="Clear search">
+                        ✕
+                    </button>
+                }
+            </div>
         </div>
 
         <div class="filter-tabs">
@@ -82,6 +108,24 @@
                 <button class="filter-btn @(currentSort == SortBy.Priority ? "active" : "")" @onclick="() => SetSort(SortBy.Priority)" disabled="@(!isLoaded)">
                     Priority
                 </button>
+                <button class="filter-btn @(currentSort == SortBy.DueDate ? "active" : "")" @onclick="() => SetSort(SortBy.DueDate)" disabled="@(!isLoaded)">
+                    Due Date
+                </button>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">Due Date:</span>
+                <button class="filter-btn @(currentDueDateFilter == DueDateFilter.All ? "active" : "")" @onclick="() => SetDueDateFilter(DueDateFilter.All)" disabled="@(!isLoaded)">
+                    All
+                </button>
+                <button class="filter-btn @(currentDueDateFilter == DueDateFilter.Overdue ? "active" : "")" @onclick="() => SetDueDateFilter(DueDateFilter.Overdue)" disabled="@(!isLoaded)">
+                    Overdue
+                </button>
+                <button class="filter-btn @(currentDueDateFilter == DueDateFilter.DueToday ? "active" : "")" @onclick="() => SetDueDateFilter(DueDateFilter.DueToday)" disabled="@(!isLoaded)">
+                    Due Today
+                </button>
+                <button class="filter-btn @(currentDueDateFilter == DueDateFilter.Upcoming ? "active" : "")" @onclick="() => SetDueDateFilter(DueDateFilter.Upcoming)" disabled="@(!isLoaded)">
+                    Upcoming
+                </button>
             </div>
         </div>
 
@@ -97,7 +141,9 @@
             {
                 @foreach (var todo in FilteredTodos)
                 {
-                    <div class="todo-item @(todo.IsCompleted ? "completed" : "") @(editingId == todo.Id ? "editing" : "") priority-@(todo.Priority.ToString().ToLower())">
+                    var isOverdue = !todo.IsCompleted && todo.DueDate.HasValue && todo.DueDate.Value.Date < DateTime.Today;
+                    var isDueToday = !todo.IsCompleted && todo.DueDate.HasValue && todo.DueDate.Value.Date == DateTime.Today;
+                    <div class="todo-item @(todo.IsCompleted ? "completed" : "") @(editingId == todo.Id ? "editing" : "") @(isOverdue ? "overdue" : "") @(isDueToday ? "due-today" : "") priority-@(todo.Priority.ToString().ToLower())">
                         <button class="check-btn @(todo.IsCompleted ? "checked" : "")" 
                                 @onclick="() => ToggleTodo(todo.Id)">
                             @if (todo.IsCompleted)
@@ -122,6 +168,9 @@
                                     <option value="@Priority.Medium">Medium</option>
                                     <option value="@Priority.High">High</option>
                                 </select>
+                                <input type="date" 
+                                       @bind="editingDueDate" 
+                                       class="date-input-edit" />
                             </div>
                             <div class="edit-actions">
                                 <button class="save-btn" @onclick="SaveEdit">Save</button>
@@ -135,7 +184,15 @@
                                     <span class="todo-title">@todo.Title</span>
                                     <span class="priority-badge priority-@(todo.Priority.ToString().ToLower())">@todo.Priority</span>
                                 </div>
-                                <span class="todo-date">@todo.CreatedAt.ToString("MMM dd, HH:mm")</span>
+                                <div class="todo-metadata">
+                                    <span class="todo-date">@todo.CreatedAt.ToString("MMM dd, HH:mm")</span>
+                                    @if (todo.DueDate.HasValue)
+                                    {
+                                        <span class="due-date-info @(isOverdue ? "overdue-text" : "") @(isDueToday ? "due-today-text" : "")">
+                                            @GetDueDateDisplay(todo.DueDate.Value, todo.IsCompleted)
+                                        </span>
+                                    }
+                                </div>
                             </div>
                             <div class="todo-actions">
                                 <button class="edit-btn" @onclick="() => StartEdit(todo)" title="Edit">✏️</button>
@@ -152,17 +209,22 @@
 @code {
     private string newTodoTitle = string.Empty;
     private Priority newTodoPriority = Priority.Medium;
+    private DateTime? newTodoDueDate = null;
     private Guid? editingId = null;
     private string editingTitle = string.Empty;
     private Priority editingPriority = Priority.Medium;
+    private DateTime? editingDueDate = null;
     private Filter currentFilter = Filter.All;
     private PriorityFilter currentPriorityFilter = PriorityFilter.All;
+    private DueDateFilter currentDueDateFilter = DueDateFilter.All;
     private SortBy currentSort = SortBy.CreatedDate;
     private bool isLoaded = false;
+    private string searchQuery = string.Empty;
 
     private enum Filter { All, Pending, Completed }
     private enum PriorityFilter { All, High, Medium, Low }
-    private enum SortBy { CreatedDate, Priority }
+    private enum DueDateFilter { All, Overdue, DueToday, Upcoming }
+    private enum SortBy { CreatedDate, Priority, DueDate }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -179,6 +241,12 @@
         get
         {
             var todos = TodoService.GetAll().AsEnumerable();
+            
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                todos = todos.Where(t => t.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+            }
             
             // Apply status filter
             todos = currentFilter switch
@@ -197,10 +265,20 @@
                 _ => todos
             };
             
+            // Apply due date filter
+            todos = currentDueDateFilter switch
+            {
+                DueDateFilter.Overdue => todos.Where(t => !t.IsCompleted && t.DueDate.HasValue && t.DueDate.Value.Date < DateTime.Today),
+                DueDateFilter.DueToday => todos.Where(t => !t.IsCompleted && t.DueDate.HasValue && t.DueDate.Value.Date == DateTime.Today),
+                DueDateFilter.Upcoming => todos.Where(t => !t.IsCompleted && t.DueDate.HasValue && t.DueDate.Value.Date > DateTime.Today),
+                _ => todos
+            };
+            
             // Apply sorting
             return currentSort switch
             {
                 SortBy.Priority => todos.OrderByDescending(t => t.Priority).ThenByDescending(t => t.CreatedAt),
+                SortBy.DueDate => todos.OrderBy(t => t.DueDate ?? DateTime.MaxValue).ThenByDescending(t => t.CreatedAt),
                 _ => todos
             };
         }
@@ -210,9 +288,10 @@
     {
         if (!string.IsNullOrWhiteSpace(newTodoTitle))
         {
-            await TodoService.AddAsync(newTodoTitle.Trim(), newTodoPriority);
+            await TodoService.AddAsync(newTodoTitle.Trim(), newTodoPriority, newTodoDueDate);
             newTodoTitle = string.Empty;
             newTodoPriority = Priority.Medium;
+            newTodoDueDate = null;
         }
     }
 
@@ -231,6 +310,7 @@
         editingId = todo.Id;
         editingTitle = todo.Title;
         editingPriority = todo.Priority;
+        editingDueDate = todo.DueDate;
     }
 
     private async Task SaveEdit()
@@ -239,6 +319,7 @@
         {
             await TodoService.UpdateAsync(editingId.Value, editingTitle.Trim());
             await TodoService.UpdatePriorityAsync(editingId.Value, editingPriority);
+            await TodoService.UpdateDueDateAsync(editingId.Value, editingDueDate);
         }
         CancelEdit();
     }
@@ -248,6 +329,7 @@
         editingId = null;
         editingTitle = string.Empty;
         editingPriority = Priority.Medium;
+        editingDueDate = null;
     }
 
     private async Task HandleEditKeyDown(KeyboardEventArgs e)
@@ -277,8 +359,51 @@
         currentSort = sort;
     }
 
+    private void SetDueDateFilter(DueDateFilter filter)
+    {
+        currentDueDateFilter = filter;
+    }
+
+    private void ClearSearch()
+    {
+        searchQuery = string.Empty;
+    }
+
+    private string GetDueDateDisplay(DateTime dueDate, bool isCompleted)
+    {
+        if (isCompleted)
+        {
+            return $"Due: {dueDate:MMM dd}";
+        }
+
+        var daysUntilDue = (dueDate.Date - DateTime.Today).Days;
+        
+        if (daysUntilDue < 0)
+        {
+            var daysOverdue = Math.Abs(daysUntilDue);
+            return $"⚠️ {daysOverdue} day{(daysOverdue != 1 ? "s" : "")} overdue";
+        }
+        else if (daysUntilDue == 0)
+        {
+            return "📅 Due today";
+        }
+        else if (daysUntilDue == 1)
+        {
+            return "📅 Due tomorrow";
+        }
+        else
+        {
+            return $"📅 {daysUntilDue} days left";
+        }
+    }
+
     private string GetEmptyMessage()
     {
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            return $"No tasks found matching \"{searchQuery}\".";
+        }
+        
         if (currentPriorityFilter != PriorityFilter.All)
         {
             var priorityName = currentPriorityFilter.ToString();
