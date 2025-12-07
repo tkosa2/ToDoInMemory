@@ -64,7 +64,7 @@
                        disabled="@(!isLoaded)" />
                 @if (!string.IsNullOrWhiteSpace(searchQuery))
                 {
-                    <button class="clear-search-btn" @onclick="ClearSearch" title="Clear search">
+                    <button class="clear-search-btn" @onclick="ClearSearch" title="Clear search" aria-label="Clear search">
                         ✕
                     </button>
                 }
