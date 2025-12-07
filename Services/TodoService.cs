@@ -6,12 +6,12 @@ namespace ToDoInMemory.Services;
 public class TodoService
 {
     private readonly List<TodoItem> _todos = new();
-    private readonly LocalStorageService _localStorage;
+    private readonly ILocalStorageService _localStorage;
     private const string StorageKey = "todos";
     private bool _isInitialized = false;
     private readonly SemaphoreSlim _initLock = new(1, 1);
 
-    public TodoService(LocalStorageService localStorage)
+    public TodoService(ILocalStorageService localStorage)
     {
         _localStorage = localStorage;
     }
