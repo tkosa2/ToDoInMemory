@@ -54,6 +54,23 @@
             </form>
         </div>
 
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" 
+                       @bind="searchQuery" 
+                       @bind:event="oninput"
+                       placeholder="Search tasks by title..." 
+                       class="search-input"
+                       disabled="@(!isLoaded)" />
+                @if (!string.IsNullOrWhiteSpace(searchQuery))
+                {
+                    <button class="clear-search-btn" @onclick="ClearSearch" title="Clear search">
+                        ✕
+                    </button>
+                }
+            </div>
+        </div>
+
         <div class="filter-tabs">
             <div class="filter-group">
                 <span class="filter-label">Status:</span>
@@ -201,6 +218,7 @@
     private DueDateFilter currentDueDateFilter = DueDateFilter.All;
     private SortBy currentSort = SortBy.CreatedDate;
     private bool isLoaded = false;
+    private string searchQuery = string.Empty;
 
     private enum Filter { All, Pending, Completed }
     private enum PriorityFilter { All, High, Medium, Low }
@@ -222,6 +240,12 @@
         get
         {
             var todos = TodoService.GetAll().AsEnumerable();
+            
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                todos = todos.Where(t => t.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+            }
             
             // Apply status filter
             todos = currentFilter switch
@@ -339,6 +363,11 @@
         currentDueDateFilter = filter;
     }
 
+    private void ClearSearch()
+    {
+        searchQuery = string.Empty;
+    }
+
     private string GetDueDateDisplay(DateTime dueDate, bool isCompleted)
     {
         if (isCompleted)
@@ -369,6 +398,11 @@
 
     private string GetEmptyMessage()
     {
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            return $"No tasks found matching \"{searchQuery}\".";
+        }
+        
         if (currentPriorityFilter != PriorityFilter.All)
         {
             var priorityName = currentPriorityFilter.ToString();
