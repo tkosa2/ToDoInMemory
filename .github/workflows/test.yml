@@ -37,14 +37,8 @@ jobs:
     - name: Install npm dependencies
       run: npm ci
       
-    - name: Install Playwright browsers (JavaScript)
+    - name: Install Playwright browsers
       run: npx playwright install --with-deps chromium
-      
-    - name: Install Playwright browsers (.NET)
-      run: |
-        dotnet tool install --global Microsoft.Playwright.CLI || true
-        playwright install chromium
-        playwright install-deps chromium || true
       
     - name: Run unit tests
       run: dotnet test --no-build --verbosity normal --filter "FullyQualifiedName!~IntegrationTests&FullyQualifiedName!~PlaywrightTests"
@@ -52,14 +46,11 @@ jobs:
     - name: Run integration tests
       run: dotnet test --no-build --verbosity normal --filter "FullyQualifiedName~IntegrationTests"
       
-    - name: Run Playwright tests (JavaScript)
+    - name: Run Playwright tests
       run: npm test
       
-    - name: Run Playwright tests (.NET)
-      run: dotnet test --no-build --verbosity normal --filter "FullyQualifiedName~PlaywrightTests"
-      
-    - name: Run all tests (summary)
-      run: dotnet test --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --collect:"XPlat Code Coverage"
+    - name: Run all .NET tests (summary)
+      run: dotnet test --no-build --verbosity normal --filter "FullyQualifiedName!~PlaywrightTests" --logger "trx;LogFileName=test-results.trx" --collect:"XPlat Code Coverage"
       
     - name: Upload test results
       if: always()
