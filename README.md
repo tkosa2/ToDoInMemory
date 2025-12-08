@@ -111,12 +111,13 @@ This project includes comprehensive testing infrastructure and automated CI/CD:
 - Test the full request/response cycle
 
 **Playwright Tests (Browser Automation)**
-- Located in `ToDoInMemory.Tests/PlaywrightTests.cs`
+- Located in `tests/todo.spec.js` (JavaScript/Node.js)
 - Test the application in a real browser environment
 - Automate user interactions (clicking, typing, navigating)
 - Verify UI behavior and user workflows
 - Test JavaScript interactions and localStorage functionality
 - Run in headless mode for CI/CD automation
+- Uses native Playwright with npm/npx for better tooling and documentation
 
 #### Running Tests Locally
 
@@ -135,13 +136,24 @@ Run only integration tests:
 dotnet test --filter "FullyQualifiedName~IntegrationTests"
 ```
 
-Run only Playwright tests:
+Run only Playwright tests (JavaScript):
 ```bash
-dotnet test --filter "FullyQualifiedName~PlaywrightTests"
+npm test
+# or
+npx playwright test
 ```
 
-**Note**: Before running Playwright tests for the first time, install the Playwright browsers:
+**Note**: Before running Playwright tests for the first time:
+1. Install Node.js and npm (via nvm recommended)
+2. Install Playwright dependencies:
 ```bash
+npm install
+npx playwright install chromium
+```
+
+**Alternative**: You can also run Playwright tests with the .NET version (if needed):
+```bash
+dotnet test --filter "FullyQualifiedName~PlaywrightTests"
 dotnet tool install --global Microsoft.Playwright.CLI
 playwright install chromium
 ```

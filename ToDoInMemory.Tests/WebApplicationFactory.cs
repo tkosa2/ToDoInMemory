@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using ToDoInMemory.Services;
 
 namespace ToDoInMemory.Tests;
@@ -11,10 +14,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        
-        // Configure to use a real Kestrel server (not in-memory) so Playwright can connect
-        // This allows the test server to listen on an actual TCP port
-        builder.UseKestrel();
         
         // Override services for testing
         builder.ConfigureServices(services =>
@@ -29,6 +28,29 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             }
             services.AddScoped<ILocalStorageService, TestLocalStorageService>();
         });
+    }
+
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        // Create a real Kestrel host that listens on an actual TCP port
+        // This is required for Playwright tests to connect to the server
+        var host = builder.Build();
+        
+        // Start the host to get the actual listening address
+        host.Start();
+        
+        // Get the server and its listening address
+        var server = host.Services.GetRequiredService<IServer>();
+        var addressesFeature = server.Features.Get<IServerAddressesFeature>();
+        
+        // Set the base address for the test client
+        if (addressesFeature?.Addresses?.Any() == true)
+        {
+            var address = addressesFeature.Addresses.First();
+            ClientOptions.BaseAddress = new Uri(address);
+        }
+        
+        return host;
     }
 }
 

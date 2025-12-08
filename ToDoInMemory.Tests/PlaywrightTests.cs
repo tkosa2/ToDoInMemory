@@ -1,8 +1,5 @@
 using FluentAssertions;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Playwright;
 using Xunit;
 
@@ -23,50 +20,11 @@ public class PlaywrightTests : IClassFixture<CustomWebApplicationFactory>, IAsyn
 
     public async Task InitializeAsync()
     {
-        // Get the Kestrel test server URL
-        // WebApplicationFactory creates a Kestrel test server with a random port
-        // We need to ensure the server is started, then get its actual URL
-        
-        // Create a client first to ensure the Kestrel server is fully started
-        using var client = _factory.CreateClient();
-        
-        // Get the server instance from the factory
-        var server = _factory.Server.Services.GetRequiredService<IServer>();
-        
-        // Get the server addresses feature which contains the actual Kestrel server URL
-        var addressesFeature = server.Features.Get<IServerAddressesFeature>();
-        
-        // The Kestrel test server should have at least one address with the actual port
-        // Try multiple methods to get the server URL, in order of reliability:
-        // 1. Server addresses feature (most reliable - has actual port)
-        // 2. Server.BaseAddress (set by WebApplicationFactory)
-        // 3. Client.BaseAddress (fallback)
-        if (addressesFeature?.Addresses?.Any() == true)
-        {
-            // Use the first address (Kestrel test server typically has one with actual port)
-            _baseUrl = addressesFeature.Addresses.First().TrimEnd('/');
-        }
-        else if (_factory.Server.BaseAddress != null && !_factory.Server.BaseAddress.ToString().EndsWith("/"))
-        {
-            // Use the server's base address if it's not just "http://localhost/"
-            var serverUrl = _factory.Server.BaseAddress.ToString().TrimEnd('/');
-            if (serverUrl != "http://localhost")
-            {
-                _baseUrl = serverUrl;
-            }
-            else
-            {
-                // Server.BaseAddress is just localhost, try client
-                _baseUrl = client.BaseAddress?.ToString().TrimEnd('/') 
-                    ?? throw new InvalidOperationException("Could not determine Kestrel test server URL. Server may not be started.");
-            }
-        }
-        else
-        {
-            // Final fallback: use the client's base address
-            _baseUrl = client.BaseAddress?.ToString().TrimEnd('/') 
-                ?? throw new InvalidOperationException("Could not determine Kestrel test server URL. Server may not be started.");
-        }
+        // Get the Kestrel test server URL from the factory's ClientOptions
+        // The CustomWebApplicationFactory.CreateHost() method now properly sets
+        // ClientOptions.BaseAddress to the actual listening address
+        _baseUrl = _factory.ClientOptions.BaseAddress?.ToString().TrimEnd('/')
+            ?? throw new InvalidOperationException("Could not determine Kestrel test server URL. Server may not be started.");
         
         // Debug: Output the URL to console (will show in test output)
         Console.WriteLine($"[Playwright] Connecting to Kestrel test server at: {_baseUrl}");
