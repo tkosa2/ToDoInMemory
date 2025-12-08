@@ -186,3 +186,36 @@ Install Node: Use nvm install lts to grab the latest stable Node.js version.
 Activate Node: Use nvm use <version_number> (e.g., nvm use 20.10.0). Note: You often need to run CMD or PowerShell as Administrator when running nvm use for the first time, as it requires permission to create a system symlink.
 Verify Node: Now you can run node -v and npm -v in your standard CMD/PowerShell windows! 
 This approach ensures seamless operation across all your Windows environments.
+
+npm is installed, but PowerShell's execution policy may blocking scripts.  Checking the current execution policy:
+Command: Get-ExecutionPolicy
+PS C:\projects\ToDoInMemory\ToDoInMemory> Get-ExecutionPolicy
+Restricted
+Execution policy is "Restricted". Setting it to "RemoteSigned" for the current user so npm scripts can run:
+Command: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+PS C:\projects\ToDoInMemory\ToDoInMemory> q^C
+PS C:\projects\ToDoInMemory\ToDoInMemory> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+check if npm is insalled if not make sure use nvm
+
+Checking if npm is installed. If not, we'll use nvm to install Node.js (which includes npm).
+PS C:\projects\ToDoInMemory\ToDoInMemory> npm --version
+npm : File C:\nvm4w\nodejs\npm.ps1 cannot be loaded because running scripts is 
+disabled on this system. For more information, see about_Execution_Policies at 
+https:/go.microsoft.com/fwlink/?LinkID=135170.
+At line:1 char:1
++ npm --version
++ ~~~
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+PS C:\projects\ToDoInMemory\ToDoInMemory> 
+npm is installed, but PowerShell's execution policy is blocking scripts. Checking the current execution policy:
+PS C:\projects\ToDoInMemory\ToDoInMemory> Get-ExecutionPolicy
+Restricted
+PS C:\projects\ToDoInMemory\ToDoInMemory> 
+Execution policy is "Restricted". Setting it to "RemoteSigned" for the current user so npm scripts can run:
+PS C:\projects\ToDoInMemory\ToDoInMemory> q^C
+PS C:\projects\ToDoInMemory\ToDoInMemory> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+PS C:\projects\ToDoInMemory\ToDoInMemory>
+Verifying npm is working:
+Command: npm --version
