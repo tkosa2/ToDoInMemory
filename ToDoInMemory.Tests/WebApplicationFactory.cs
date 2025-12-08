@@ -12,6 +12,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("Testing");
         
+        // Configure to use a real Kestrel server (not in-memory) so Playwright can connect
+        // This allows the test server to listen on an actual TCP port
+        builder.UseKestrel();
+        
         // Override services for testing
         builder.ConfigureServices(services =>
         {

@@ -29,11 +29,20 @@ jobs:
     - name: Build solution
       run: dotnet build --no-restore
       
+    - name: Install Playwright browsers
+      run: |
+        dotnet tool install --global Microsoft.Playwright.CLI || true
+        playwright install chromium
+        playwright install-deps chromium || true
+      
     - name: Run unit tests
-      run: dotnet test --no-build --verbosity normal --filter "FullyQualifiedName!~IntegrationTests"
+      run: dotnet test --no-build --verbosity normal --filter "FullyQualifiedName!~IntegrationTests&FullyQualifiedName!~PlaywrightTests"
       
     - name: Run integration tests
       run: dotnet test --no-build --verbosity normal --filter "FullyQualifiedName~IntegrationTests"
+      
+    - name: Run Playwright tests
+      run: dotnet test --no-build --verbosity normal --filter "FullyQualifiedName~PlaywrightTests"
       
     - name: Run all tests (summary)
       run: dotnet test --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --collect:"XPlat Code Coverage"

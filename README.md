@@ -110,6 +110,14 @@ This project includes comprehensive testing infrastructure and automated CI/CD:
 - Make actual HTTP requests to verify application behavior
 - Test the full request/response cycle
 
+**Playwright Tests (Browser Automation)**
+- Located in `ToDoInMemory.Tests/PlaywrightTests.cs`
+- Test the application in a real browser environment
+- Automate user interactions (clicking, typing, navigating)
+- Verify UI behavior and user workflows
+- Test JavaScript interactions and localStorage functionality
+- Run in headless mode for CI/CD automation
+
 #### Running Tests Locally
 
 Run all tests:
@@ -119,12 +127,23 @@ dotnet test
 
 Run only unit tests:
 ```bash
-dotnet test --filter "FullyQualifiedName!~IntegrationTests"
+dotnet test --filter "FullyQualifiedName!~IntegrationTests&FullyQualifiedName!~PlaywrightTests"
 ```
 
 Run only integration tests:
 ```bash
 dotnet test --filter "FullyQualifiedName~IntegrationTests"
+```
+
+Run only Playwright tests:
+```bash
+dotnet test --filter "FullyQualifiedName~PlaywrightTests"
+```
+
+**Note**: Before running Playwright tests for the first time, install the Playwright browsers:
+```bash
+dotnet tool install --global Microsoft.Playwright.CLI
+playwright install chromium
 ```
 
 #### GitHub Actions Workflow
@@ -136,7 +155,8 @@ A GitHub Actions workflow has been configured to automatically run tests:
   - When a new branch is pushed to GitHub
   - When a pull request is created or updated
 - **Actions**: 
-  - Runs both unit tests and integration tests
+  - Installs Playwright browsers automatically
+  - Runs unit tests, integration tests, and Playwright browser automation tests
   - Builds the solution
   - Uploads test results as artifacts
 
@@ -152,3 +172,17 @@ This application uses browser localStorage for data persistence, which means:
 
 For production use with multiple users and server-side data management, consider implementing a database backend (Entity Framework Core with SQL Server, SQLite, or PostgreSQL).
 
+NOTES:
+Install NVM for Windows
+Download the official installer for the Windows-specific version: 
+Go to the nvm-windows GitHub releases page.
+Download the nvm-setup.exe file from the latest release.
+Run the installer. The installer automatically sets up the correct environment variables (NVM_HOME and NVM_SYMLINK) and configures your Windows PATH for both CMD and PowerShell. 
+3. Verify and Use NVM in CMD or PowerShell 
+Restart all terminals: Close all open Bash, CMD, and PowerShell windows for the PATH changes to take effect.
+Open a new terminal: Open a new Command Prompt or PowerShell window.
+Verify installation: Type nvm version or nvm --version. You should see a version number.
+Install Node: Use nvm install lts to grab the latest stable Node.js version.
+Activate Node: Use nvm use <version_number> (e.g., nvm use 20.10.0). Note: You often need to run CMD or PowerShell as Administrator when running nvm use for the first time, as it requires permission to create a system symlink.
+Verify Node: Now you can run node -v and npm -v in your standard CMD/PowerShell windows! 
+This approach ensures seamless operation across all your Windows environments.
